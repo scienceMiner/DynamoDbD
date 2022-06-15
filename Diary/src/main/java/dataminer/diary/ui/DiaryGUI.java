@@ -63,6 +63,7 @@ public class DiaryGUI {
 	private CacheHandler ch = new CacheHandler();
 	
 	public static String initialFileNamePath = "/Users/ethancollopy/dev/ERCMBSrc/Diary/src/main/resources/output2015.xml";
+	public static String userName = "ucacerc";
 	
 	/**
 	 * Launch the application.

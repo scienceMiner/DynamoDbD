@@ -22,8 +22,8 @@ import org.apache.logging.log4j.Logger;
 import org.jdesktop.swingx.JXDatePicker;
 
 import dataminer.diary.CacheHandler;
-import dataminer.diary.EntryType;
 import dataminer.diary.DateUtils;
+import dataminer.diary.EntryType;
 import dataminer.diary.dyndb.EntryMigration;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -133,7 +133,7 @@ public class DiaryEntryGUI extends JPanel {
 				EntryMigration em = new EntryMigration();
 				DynamoDbClient ddb = em.initializeDDBClient();
 			    DynamoDbEnhancedClient edb = em.initializeEnhancedClient(ddb);
-			    em.putRecord(edb, "ucacerc", entry);
+			    em.putRecord(edb, DiaryGUI.userName, entry);
 			    
 				// JUN 2022 - dont bother to unmarshal TEST
 				// _ch.marshal(); // writes to default file

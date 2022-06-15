@@ -242,7 +242,7 @@ public static DynamoDbClient initializeDDBClient() {
   		  int count=1;
   		  for (EntryType e : entryTypeList) {
   			  Entry record = new Entry();
-  			  record.setUserName("ucacerc");
+  			  record.setUserName(DiaryGUI.userName);
   			  
   			  StringBuilder sb = new StringBuilder();
   			  record.setId(count++);
