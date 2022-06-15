@@ -124,8 +124,7 @@ public class DiaryEntryGUI extends JPanel {
 				entry.setValue(textField.getText());
 				
 				entries.add(entry);
-				
-				
+								
 				Collections.sort(_ch.getEntryList());
 				_dt.populateTable(_ch.getEntryList());
 				
