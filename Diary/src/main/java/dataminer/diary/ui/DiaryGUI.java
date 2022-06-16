@@ -18,7 +18,6 @@ import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
@@ -34,8 +33,6 @@ import org.jdesktop.swingx.JXDatePicker;
 import dataminer.diary.CacheHandler;
 import dataminer.diary.DateUtils;
 import dataminer.diary.dyndb.EntryMigration;
-import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
-import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 public class DiaryGUI {
 
@@ -48,7 +45,7 @@ public class DiaryGUI {
 	/**
 	 * @wbp.nonvisual location=-391,41
 	 */
-	private final JScrollBar scrollBar = new JScrollBar();
+	//private final JScrollBar scrollBar = new JScrollBar();
 	private Component verticalStrut;
 	private JTextField textField;
 	private JScrollPane scrollPane;
@@ -61,6 +58,7 @@ public class DiaryGUI {
 	private DiaryEntryGUI entryDialog; // = new DiaryEntryGUI();
 	private JFileChooser fc = new JFileChooser();
 	private CacheHandler ch = new CacheHandler();
+	private EntryMigration em = new EntryMigration();
 	
 	public static String initialFileNamePath = "/Users/ethancollopy/dev/ERCMBSrc/Diary/src/main/resources/output2015.xml";
 	public static String userName = "ucacerc";
@@ -95,28 +93,25 @@ public class DiaryGUI {
 	 */
 	private void initialize() {
 		
-		//final CacheHandler ch = new CacheHandler();
-		
 		frmDiary = new JFrame();
 		frmEntry = new JFrame();
 		
-		EntryMigration em = new EntryMigration();
-		DynamoDbClient ddb = em.initializeDDBClient();
-	    DynamoDbEnhancedClient edb = em.initializeEnhancedClient(ddb);
-	    ch.setEntryList(em.scan(edb));
+		// Feed the cache from Dynamo db
+	    ch.setEntryList( em.scan() );
+	    
 	    DiaryTable diaryTable = new DiaryTable(ch.getEntryList());
 	    
-
-		
-//		DiaryTable diaryTable = new DiaryTable(ch.populateEntryList());
+	    /*
+	     *  If we are NOT using AWS Dynamo Db
+	     */
+	    //  DiaryTable diaryTable = new DiaryTable(ch.populateEntryList());
 	    
 		table = diaryTable.getDiaryTable();
 		table.setFillsViewportHeight(true);
 		table.setCellSelectionEnabled(true);
 		
 		entryDialog = new DiaryEntryGUI(diaryTable,ch);
-		
-		
+			
 		final TableRowSorter<TableModel> sorter =
                 new TableRowSorter<TableModel>(diaryTable.getModel());
 		table.setRowSorter(sorter);
@@ -143,8 +138,7 @@ public class DiaryGUI {
 
 		scrollPane = new JScrollPane(table);
 		scrollPane.setViewportView(table);
-		
-		
+			
 		GridBagConstraints gbc_scrollPane = new GridBagConstraints();
 		gbc_scrollPane.gridwidth = 5;
 		gbc_scrollPane.gridheight = 11;
@@ -156,7 +150,6 @@ public class DiaryGUI {
 		
 		datePicker = new JXDatePicker ();
 		  
-	//	monthPanel = new MonthPanel();
 		GridBagConstraints gbc_monthPanel = new GridBagConstraints();
 		gbc_monthPanel.insets = new Insets(0, 0, 5, 5);
 		gbc_monthPanel.fill = GridBagConstraints.BOTH;
@@ -240,7 +233,7 @@ public class DiaryGUI {
 		{
 			public void actionPerformed (ActionEvent e)
 			{
-				System.out.println ("Selected: " + datePicker.getDate ());
+				logger.debug ("Selected: " + datePicker.getDate ());
 				Calendar cal =  Calendar.getInstance();
 				cal.setTime(datePicker.getDate());
 				try {
@@ -269,10 +262,10 @@ public class DiaryGUI {
 	            if (returnVal == JFileChooser.APPROVE_OPTION) {
 	                File file = fc.getSelectedFile();
 	                //This is where a real application would save the file.
-	                System.out.println("Saving: " + file.getName() + "." + newline);
+	                logger.debug("Saving: " + file.getName() + "." + newline);
 	                ch.marshal(file);
 	            } else {
-	                System.out.println("Save command cancelled by user." + newline);
+	                logger.debug("Save command cancelled by user." + newline);
 	            }
 			}
 		});
@@ -293,7 +286,7 @@ public class DiaryGUI {
 				entryDialog.setVisible(true);
 				frmEntry.setVisible(true);
 			
-				System.out.println(" button clicked ");
+				logger.debug(" NEW ENTRY button clicked ");
 
 				Window w = SwingUtilities.getWindowAncestor(entryDialog);
 				w.setVisible(true);

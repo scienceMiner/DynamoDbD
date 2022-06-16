@@ -46,7 +46,8 @@ public class DateUtils {
 		if (day < 10)
 			return new String("0"+day);
 		else
-			return new Integer(day).toString();
+			return Integer.toString(day);
+
 	}
 	
 	public static Date formDate(Date date)

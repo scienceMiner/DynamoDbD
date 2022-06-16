@@ -25,11 +25,11 @@ import dataminer.diary.CacheHandler;
 import dataminer.diary.DateUtils;
 import dataminer.diary.EntryType;
 import dataminer.diary.dyndb.EntryMigration;
-import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
-import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 public class DiaryEntryGUI extends JPanel {
 	
+	private static final long serialVersionUID = 2318405202615322731L;
+
 	private static Logger logger =  LogManager.getLogger( DiaryEntryGUI.class );
 
 	private JTextField textField;
@@ -39,6 +39,8 @@ public class DiaryEntryGUI extends JPanel {
 	public CacheHandler getCacheHandler() {
 		return _ch;
 	}
+	private EntryMigration em = new EntryMigration();
+    
 	
 	/**
 	 * Create the panel.
@@ -112,7 +114,7 @@ public class DiaryEntryGUI extends JPanel {
 				logger.debug(" Need to save new entry ");
 
 				List<EntryType> entries = _ch.getEntryList();
-				System.out.println(" entries " + entries.size());
+				logger.debug( " entries " + entries.size());
 				
 				EntryType entry = new EntryType();
 				Date selected = datePicker.getDate();
@@ -129,10 +131,7 @@ public class DiaryEntryGUI extends JPanel {
 				_dt.populateTable(_ch.getEntryList());
 				
 				// Needs to be handled by the CacheHandler...
-				EntryMigration em = new EntryMigration();
-				DynamoDbClient ddb = em.initializeDDBClient();
-			    DynamoDbEnhancedClient edb = em.initializeEnhancedClient(ddb);
-			    em.putRecord(edb, DiaryGUI.userName, entry);
+				em.putRecord(DiaryGUI.userName, entry);
 			    
 				// JUN 2022 - dont bother to unmarshal TEST
 				// _ch.marshal(); // writes to default file

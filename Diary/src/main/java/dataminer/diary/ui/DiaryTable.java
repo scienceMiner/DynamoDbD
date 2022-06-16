@@ -7,11 +7,13 @@ import java.util.List;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
-import dataminer.diary.EntryType;
 import dataminer.diary.DateUtils;
+import dataminer.diary.EntryType;
 
 public class DiaryTable extends JTable {
 
+	private static final long serialVersionUID = -3905444270118438328L;
+	
 	private static final int STRING_COL = 1;
     private static final int DATE_COL = 0;
     private final DiaryModel model = new DiaryModel();
@@ -83,7 +85,6 @@ public class DiaryTable extends JTable {
 		
 		for (EntryType et : eList)
 		{
-			//System.out.println(" Adding " + Utils.formDate(et) + " >>> " + et.getValue());
 			model.addRow(new Object[]{ DateUtils.formDate(et), et.getValue() } );
 		}
 		

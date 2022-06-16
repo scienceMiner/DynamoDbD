@@ -9,6 +9,8 @@ import javax.swing.border.EmptyBorder;
 
 public class EntryGUI extends JFrame {
 
+	private static final long serialVersionUID = -6845083260445162004L;
+	
 	private JPanel contentPane;
 
 	/**

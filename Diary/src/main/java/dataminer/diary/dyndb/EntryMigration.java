@@ -45,333 +45,332 @@ import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 import software.amazon.awssdk.services.dynamodb.model.TableDescription;
 import software.amazon.awssdk.services.dynamodb.waiters.DynamoDbWaiter;
-//snippet-end:[dynamodb.java2.create_table.import]
 
-/**
-* Before running this Java V2 code example, set up your development environment, including your credentials.
-*
-* For more information, see the following documentation topic:
-*
-* https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/get-started.html
-*/
+/*
+ * 
+ * AWS Set up your development environment, including your credentials.
+ *
+ * AWS link for this:-
+ * https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/get-started.html
+ * 
+ */
+
 public class EntryMigration {
 
 	private static Logger logger =  LogManager.getLogger( EntryMigration.class );
 
 	public static String tableName = "Entry";
 	public static Integer currentMaxId = 0;
-	
+
 	private DynamoDbClient ddb = null;
 	private DynamoDbEnhancedClient enhancedClient = null;
-     
-  public static void main(String[] args) {
 
-	  EntryMigration em1 = new EntryMigration();
-      final String usage = "\n" +
-              "Usage:\n" +
-              "    <tableName> <key>\n\n" +
-              "Where:\n" +
-              "    tableName - The Amazon DynamoDB table to create (for example, Music3).\n\n" +
-              "    key - The key for the Amazon DynamoDB table (for example, Artist).\n" ;
+	public static void main(String[] args) {
 
-     if (args.length != 2) {
-          System.out.println(usage);
-          System.exit(1);
-     }
+		EntryMigration em = new EntryMigration();
+		final String usage = "\n" +
+				"Usage:\n" +
+				"    <tableName> <key>\n\n" +
+				"Where:\n" +
+				"    tableName - The Amazon DynamoDB table to create (for example, EntryData ).\n\n" +
+				"    key - The key for the Amazon DynamoDB table (for example, Username).\n" ;
 
-      String tableName = args[0];
-      String key = args[1];
-      
-      logger.debug("Creating an Amazon DynamoDB table "+tableName +" with a simple primary key: " +key );
-       
-      DynamoDbClient ddb = initializeDDBClient();
-      DynamoDbEnhancedClient enhancedClient = initializeEnhancedClient(ddb);
+		if (args.length != 2) {
+			System.out.println(usage);
+			System.exit(1);
+		}
 
-  //    createTableWithoutIndex(enhancedClient);
-      
-  //    System.out.println(" New table created " );
-      
-  //    String entryResult = putRecord(enhancedClient);
-      	
-      // getItem(enhancedClient);
-    //   getTableSize(ddb , tableName );
-      
-   	putBatchRecords(enhancedClient);
-      
- //      scan(enhancedClient);
-       
-    //  deleteDynamoDBTable(ddb,"Entry");
-      
-    //   close();
-      
-  }
-  
-public static DynamoDbClient initializeDDBClient() {
-	  
-	  ProfileCredentialsProvider credentialsProvider = ProfileCredentialsProvider.create();
-      Region region = Region.EU_NORTH_1;
-      
-      DynamoDbClient ddb = DynamoDbClient.builder()
-              .credentialsProvider(credentialsProvider)
-              .region(region)
-              .build();
-      
-      return ddb;
-}
-  
-  public static DynamoDbEnhancedClient initializeEnhancedClient(DynamoDbClient ddb ) {
-	  
-      DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
-              .dynamoDbClient(ddb)
-              .build();
-      
-      return enhancedClient;
-  }
-  
-  public static void createTableWithoutIndex( DynamoDbEnhancedClient edb )
-  {
-	  
-	  DynamoDbTable<Entry> custTable = edb.table(tableName, TableSchema.fromBean(Entry.class));
+		String tableName = args[0];
+		String key = args[1];
 
-	  custTable.createTable();
-	  
-  }
-  
-  public static void deleteDynamoDBTable(DynamoDbClient ddb, String tableName) {
+		logger.debug("Creating an Amazon DynamoDB table " + tableName + " with a simple primary key: " + key );
 
-      DeleteTableRequest request = DeleteTableRequest.builder()
-              .tableName(tableName)
-              .build();
+		//    em.createTableWithoutIndex();
+		
+		//    String entryResult = em.putRecord();
 
-      try {
-          ddb.deleteTable(request);
+		// 	 em.getItem();
+		//   em.getTableSize( tableName );
 
-      } catch (DynamoDbException e) {
-          System.err.println(e.getMessage());
-          System.exit(1);
-      }
-      logger.debug(tableName +" was successfully deleted!");
-  }
-  
+		em.putBatchRecords();
 
-  public static String createTable(DynamoDbClient ddb, String tableName, String key) {
+		//      em.scan();
 
-      DynamoDbWaiter dbWaiter = ddb.waiter();
-      CreateTableRequest request = CreateTableRequest.builder()
-              .attributeDefinitions(AttributeDefinition.builder()
-                      .attributeName(key)
-                      .attributeType(ScalarAttributeType.S)
-                      .build())
-              .keySchema(KeySchemaElement.builder()
-                      .attributeName(key)
-                      .keyType(KeyType.HASH)
-                      .build())
-              .provisionedThroughput(ProvisionedThroughput.builder()
-                      .readCapacityUnits(new Long(10))
-                      .writeCapacityUnits(new Long(10))
-                      .build())
-              .tableName(tableName)
-              .build();
+		//  	em.deleteDynamoDBTable( "Entry");
 
-      String newTable ="";
-      try {
-          CreateTableResponse response = ddb.createTable(request);
-          DescribeTableRequest tableRequest = DescribeTableRequest.builder()
-                  .tableName(tableName)
-                  .build();
+		em.close();
 
-          // Wait until the Amazon DynamoDB table is created.
-          WaiterResponse<DescribeTableResponse> waiterResponse = dbWaiter.waitUntilTableExists(tableRequest);
-          waiterResponse.matched().response().ifPresent(System.out::println);
-          newTable = response.tableDescription().tableName();
-          return newTable;
+	}
 
-      } catch (DynamoDbException e) {
-          System.err.println(e.getMessage());
-          System.exit(1);
-      }
-     return "";
-  }
+	public EntryMigration() {
 
-  public static String putRecord(DynamoDbEnhancedClient enhancedClient, String userName, EntryType eType) {
+		initializeDDBClient();
+		initializeEnhancedClient();
+	}
 
-	  currentMaxId++;
-	  
-      try {
-    	     	  
-          DynamoDbTable<Entry> entryTable = enhancedClient.table(tableName, TableSchema.fromBean(Entry.class));
+	public void initializeDDBClient() {
 
-          // Create an Instant value.
-         Instant instant = DateUtils.createInstantDate(eType);
+		ProfileCredentialsProvider credentialsProvider = ProfileCredentialsProvider.create();
+		Region region = Region.EU_NORTH_1;
 
-          // Populate the Table.
-          Entry userRecord = new Entry();
-          userRecord.setUserName(userName);
-          userRecord.setId(currentMaxId);
-          userRecord.setEntry(eType.getValue());
-          userRecord.setDate(instant) ;
+		ddb = DynamoDbClient.builder()
+				.credentialsProvider(credentialsProvider)
+				.region(region)
+				.build();
 
-          // Put the customer data into an Amazon DynamoDB table.
-          entryTable.putItem(userRecord);
+	}
 
-      } catch (DynamoDbException e) {
-    	  currentMaxId--;
-          System.err.println(e.getMessage());
-          System.exit(1);
-      }
-      
-      return "Customer data added to the table.";
-      
-  }
-  
-  
-  public static void putBatchRecords(DynamoDbEnhancedClient enhancedClient) {
+	public void initializeEnhancedClient( ) {
 
-      try {
-          DynamoDbTable<Entry> mappedTable = enhancedClient.table(tableName, TableSchema.fromBean(Entry.class));
-          
-          String fileNamePath = DiaryGUI.initialFileNamePath;
-  		  CacheHandler cacheHandler = new CacheHandler();
-  		  List<EntryType> entryTypeList = cacheHandler.populateEntryList(fileNamePath);
-  		
-  		  ArrayList<Entry>  entryList = new ArrayList<Entry>();
-        
-  		  Builder<Entry> builderEntry1 = WriteBatch.builder(Entry.class)
-				.mappedTableResource(mappedTable);
-       		
-  		  int count=1;
-  		  for (EntryType e : entryTypeList) {
-  			  Entry record = new Entry();
-  			  record.setUserName(DiaryGUI.userName);
-  			  
-  			  StringBuilder sb = new StringBuilder();
-  			  record.setId(count++);
-  			  record.setEntry(e.getValue());
-  			  Instant i = createInstant(e.getDay(),e.getMonth(),e.getYear());
-  			  record.setDate(i) ;
+		enhancedClient = DynamoDbEnhancedClient.builder()
+				.dynamoDbClient(ddb)
+				.build();
 
-  			builderEntry1.addPutItem( r -> r.item(record) );    
-  			if (count % 20 == 0) {
-  			  BatchWriteItemEnhancedRequest batchWriteItemEnhancedRequest =
-  	                  BatchWriteItemEnhancedRequest.builder()
-  	                          .writeBatches(builderEntry1.build())
-  	                          .build();
-  			  enhancedClient.batchWriteItem(batchWriteItemEnhancedRequest); 	         
-  			logger.info(" wrote 20 records ");
-  			  builderEntry1 = WriteBatch.builder(Entry.class)
-  					.mappedTableResource(mappedTable);
-  	       		
-  			}
-  		  }
-  		
-   
-          
-          // Add these two items to the table.
- //         enhancedClient.batchWriteItem(batchWriteItemEnhancedRequest);
-  		logger.debug("done");
+	}
+	
+	public void close() {
+		
+		ddb.close();
+		
+	}
 
-          
-      } catch (DynamoDbException e) {
-          System.err.println(e.getMessage());
-          System.exit(1);
-      }
-  }
+	public void createTableWithoutIndex( String table )
+	{
+
+		DynamoDbTable<Entry> entryTable = enhancedClient.table(table, TableSchema.fromBean(Entry.class));
+
+		entryTable.createTable();
+
+		logger.info(" New table created " );
+
+	}
+
+	public void deleteDynamoDBTable( String tableName) {
+
+		DeleteTableRequest request = DeleteTableRequest.builder()
+				.tableName(tableName)
+				.build();
+
+		try {
+			ddb.deleteTable(request);
+
+		} catch (DynamoDbException e) {
+			System.err.println(e.getMessage());
+			System.exit(1);
+		}
+		logger.debug(tableName +" was successfully deleted! ");
+	}
 
 
-  
-//snippet-start:[dynamodb.java2.mapping.getitem.main]
-  public static void getItem(DynamoDbEnhancedClient enhancedClient) {
+	@SuppressWarnings("deprecation")
+	public String createTable(String tableName, String key) {
 
-      try {
-          DynamoDbTable<Entry> table = enhancedClient.table(tableName, TableSchema.fromBean(Entry.class));
-          Key key = Key.builder()
-                  .partitionValue("119")
-                  .build();
+		DynamoDbWaiter dbWaiter = ddb.waiter();
+		CreateTableRequest request = CreateTableRequest.builder()
+				.attributeDefinitions(AttributeDefinition.builder()
+						.attributeName(key)
+						.attributeType(ScalarAttributeType.S)
+						.build())
+				.keySchema(KeySchemaElement.builder()
+						.attributeName(key)
+						.keyType(KeyType.HASH)
+						.build())
+				.provisionedThroughput(ProvisionedThroughput.builder()
+						.readCapacityUnits(new Long(10))
+						.writeCapacityUnits(new Long(10))
+						.build())
+				.tableName(tableName)
+				.build();
 
-          // Get the item by using the key.
-          Entry result = table.getItem(r -> r.key(key));
-          logger.debug("******* The description value is "+result.getUserName());
+		String newTable ="";
+		try {
+			CreateTableResponse response = ddb.createTable(request);
+			DescribeTableRequest tableRequest = DescribeTableRequest.builder()
+					.tableName(tableName)
+					.build();
 
-      } catch (DynamoDbException e) {
-          System.err.println(e.getMessage());
-          System.exit(1);
-      }
-  }
-  
-//snippet-start:[dynamodb.java2.mapping.scan.main]
-  public static List<EntryType> scan( DynamoDbEnhancedClient enhancedClient) {
+			// Wait until the Amazon DynamoDB table is created.
+			WaiterResponse<DescribeTableResponse> waiterResponse = dbWaiter.waitUntilTableExists(tableRequest);
+			waiterResponse.matched().response().ifPresent(System.out::println);
+			newTable = response.tableDescription().tableName();
+			return newTable;
 
-	  List<EntryType> entryTypeList = new ArrayList<EntryType>();
-	  
-	  
-      try{
-          DynamoDbTable<Entry> custTable = enhancedClient.table(tableName, TableSchema.fromBean(Entry.class));
-          Iterator<Entry> results = custTable.scan().items().iterator();
-          while (results.hasNext()) {
+		} catch (DynamoDbException e) {
+			logger.error(e.getMessage());
+			System.exit(1);
+		}
+		return "";
+	}
 
-              Entry rec = results.next();
-            //  System.out.println( "The record id is "+rec.getId() + "The name is " + rec.getCustName() );
-              EntryType eType = new EntryType();
-              
-              ZoneId z = ZoneId.of( "Europe/London" );
-              ZonedDateTime zdt = rec.getDate().atZone(z);
+	public String putRecord( String userName, EntryType eType) {
 
-              eType.setDay(BigInteger.valueOf(zdt.getDayOfMonth()));
-              eType.setMonth(zdt.getMonth().getDisplayName(TextStyle.SHORT,  Locale.ENGLISH));      
-              eType.setYear( BigInteger.valueOf(zdt.getYear() ) );
-              eType.setValue(rec.getEntry());
-              
-              if ( rec!= null && rec.getId() > currentMaxId) {
-            	  currentMaxId = rec.getId();
-              }
-              entryTypeList.add(eType);
-          }
+		currentMaxId++;
 
-      } catch (DynamoDbException e) {
-          System.err.println(e.getMessage());
-          System.exit(1);
-      }
-      logger.info("Done, currentId: " + currentMaxId );
-      
-      return entryTypeList;
-  }
-  
-  
-  
-  public static Instant createInstant(BigInteger day, String month, BigInteger year ) {
-	  logger.debug(" month: " + month + " day " + day);
-	  StringBuilder sb = new StringBuilder().append(year).append("-").append(DateUtils.mapMonthTo2DigitString(month))
-			  .append("-").append(DateUtils.mapDigitTo2DigitString(day));
-	  LocalDate localDate = LocalDate.parse(sb.toString());
-      LocalDateTime localDateTime = localDate.atStartOfDay();
-      Instant instant = localDateTime.toInstant(ZoneOffset.UTC);
+		try {
 
-	  return instant;
-  }
-  
-  public static Integer getTableSize( DynamoDbClient ddb, String tableName ) {
+			DynamoDbTable<Entry> entryTable = enhancedClient.table(tableName, TableSchema.fromBean(Entry.class));
 
-      DescribeTableRequest request = DescribeTableRequest.builder()
-              .tableName(tableName)
-              .build();
+			// Create an Instant value from entryType
+			Instant instant = DateUtils.createInstantDate(eType);
 
-      int size = 0;
-      try {
-          TableDescription tableInfo =
-                  ddb.describeTable(request).table();
+			// Populate the row.
+			Entry userRecord = new Entry();
+			userRecord.setUserName(userName);
+			userRecord.setId(currentMaxId);
+			userRecord.setEntry(eType.getValue());
+			userRecord.setDate(instant) ;
 
-          if (tableInfo != null) {
-        	  size =  tableInfo.itemCount().intValue();
-              logger.info( "Item count  : " +  size );
-              
-          }
-      } catch (DynamoDbException e) {
-          System.err.println(e.getMessage());
-          System.exit(1);
-      }
-      
-      return size;
-  }
- 
-  
+			// Put the entry data into an Amazon DynamoDB table.
+			entryTable.putItem(userRecord);
+
+		} catch (DynamoDbException e) {
+			currentMaxId--;
+			logger.error(e.getMessage());
+			System.exit(1);
+		}
+
+		return "Entry data added to the table, id: " + currentMaxId;
+
+	}
+
+
+	public void putBatchRecords() {
+
+		try {
+			DynamoDbTable<Entry> mappedTable = enhancedClient.table(tableName, TableSchema.fromBean(Entry.class));
+
+			String fileNamePath = DiaryGUI.initialFileNamePath;
+			CacheHandler cacheHandler = new CacheHandler();
+			List<EntryType> entryTypeList = cacheHandler.populateEntryList(fileNamePath);
+
+			Builder<Entry> builderEntry1 = WriteBatch.builder(Entry.class)
+					.mappedTableResource(mappedTable);
+
+			int count=1;
+			for (EntryType e : entryTypeList) {
+				Entry record = new Entry();
+				record.setUserName(DiaryGUI.userName);
+
+				record.setId(count++);
+				record.setEntry(e.getValue());
+				Instant i = createInstant(e.getDay(),e.getMonth(),e.getYear());
+				record.setDate(i) ;
+
+				builderEntry1.addPutItem( r -> r.item(record) );    
+				if (count % 20 == 0) {
+					BatchWriteItemEnhancedRequest batchWriteItemEnhancedRequest =
+							BatchWriteItemEnhancedRequest.builder()
+							.writeBatches(builderEntry1.build())
+							.build();
+					enhancedClient.batchWriteItem(batchWriteItemEnhancedRequest); 	         
+					logger.info(" wrote 20 records ");
+					builderEntry1 = WriteBatch.builder(Entry.class)
+							.mappedTableResource(mappedTable);
+
+				}
+			}
+
+			logger.debug("done");
+
+
+		} catch (DynamoDbException e) {
+			System.err.println(e.getMessage());
+			System.exit(1);
+		}
+	}
+
+
+
+	public void getItem() {
+
+		try {
+			DynamoDbTable<Entry> table = enhancedClient.table(tableName, TableSchema.fromBean(Entry.class));
+			Key key = Key.builder()
+					.partitionValue("119")
+					.build();
+
+			// Get the item by using the key.
+			Entry result = table.getItem(r -> r.key(key));
+			logger.debug("******* The description value is "+result.getUserName());
+
+		} catch (DynamoDbException e) {
+			System.err.println(e.getMessage());
+			System.exit(1);
+		}
+	}
+
+	public List<EntryType> scan( ) {
+
+		List<EntryType> entryTypeList = new ArrayList<EntryType>();
+
+		try{
+			DynamoDbTable<Entry> custTable = enhancedClient.table(tableName, TableSchema.fromBean(Entry.class));
+			Iterator<Entry> results = custTable.scan().items().iterator();
+			while (results.hasNext()) {
+
+				Entry rec = results.next();
+				//  System.out.println( "The record id is "+rec.getId() + "The name is " + rec.getCustName() );
+				EntryType eType = new EntryType();
+
+				ZoneId z = ZoneId.of( "Europe/London" );
+				ZonedDateTime zdt = rec.getDate().atZone(z);
+
+				eType.setDay(BigInteger.valueOf(zdt.getDayOfMonth()));
+				eType.setMonth(zdt.getMonth().getDisplayName(TextStyle.SHORT,  Locale.ENGLISH));      
+				eType.setYear( BigInteger.valueOf(zdt.getYear() ) );
+				eType.setValue(rec.getEntry());
+
+				if ( rec!= null && rec.getId() > currentMaxId) {
+					currentMaxId = rec.getId();
+				}
+				entryTypeList.add(eType);
+			}
+
+		} catch (DynamoDbException e) {
+			System.err.println(e.getMessage());
+			System.exit(1);
+		}
+		logger.info("Done, currentId: " + currentMaxId );
+
+		return entryTypeList;
+	}
+
+
+
+	public Instant createInstant(BigInteger day, String month, BigInteger year ) {
+		logger.debug(" month: " + month + " day " + day);
+		StringBuilder sb = new StringBuilder().append(year).append("-").append(DateUtils.mapMonthTo2DigitString(month))
+				.append("-").append(DateUtils.mapDigitTo2DigitString(day));
+		LocalDate localDate = LocalDate.parse(sb.toString());
+		LocalDateTime localDateTime = localDate.atStartOfDay();
+		Instant instant = localDateTime.toInstant(ZoneOffset.UTC);
+
+		return instant;
+	}
+
+	public Integer getTableSize( String tableName ) {
+
+		DescribeTableRequest request = DescribeTableRequest.builder()
+				.tableName(tableName)
+				.build();
+
+		int size = 0;
+		try {
+			TableDescription tableInfo =
+					ddb.describeTable(request).table();
+
+			if (tableInfo != null) {
+				size =  tableInfo.itemCount().intValue();
+				logger.info( "Item count  : " +  size );
+
+			}
+		} catch (DynamoDbException e) {
+			System.err.println(e.getMessage());
+			System.exit(1);
+		}
+
+		return size;
+	}
+
+
 }
